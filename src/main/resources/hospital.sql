@@ -32,14 +32,15 @@ ENGINE = InnoDB;
 -- -----------------------------------------------------
 -- Table `hospital`.`Payrolls`
 -- -----------------------------------------------------
-CREATE TABLE IF NOT EXISTS `hospital`.`Payrolls` (
-  `payroll_id` INT NOT NULL AUTO_INCREMENT,
-  `net_salary` FLOAT NOT NULL,
-  `bonus_salary` FLOAT NULL,
-  `account_number` VARCHAR(45) NULL,
+CREATE TABLE `Payrolls` (
+  `payroll_id` int NOT NULL AUTO_INCREMENT,
+  `net_salary` float NOT NULL,
+  `bonus_salary` float DEFAULT NULL,
+  `account_number` int NOT NULL,
   PRIMARY KEY (`payroll_id`),
-  UNIQUE INDEX `payroll_id_UNIQUE` (`payroll_id` ASC) VISIBLE)
-ENGINE = InnoDB;
+  UNIQUE KEY `payroll_id_UNIQUE` (`payroll_id`),
+  UNIQUE KEY `account_number_UNIQUE` (`account_number`)
+) ENGINE=InnoDB AUTO_INCREMENT=8 DEFAULT CHARSET=utf8mb3
 
 
 -- -----------------------------------------------------
@@ -89,8 +90,8 @@ CREATE TABLE IF NOT EXISTS `hospital`.`Patients` (
   `name` VARCHAR(45) NOT NULL,
   `DOB` DATE NOT NULL,
   `phone` VARCHAR(45) NULL,
-  `insurance_id` INT NOT NULL,
-  `doctor_id` INT NOT NULL,
+  `insurance_id` INT NULL,
+  `doctor_id` INT NULL,
   PRIMARY KEY (`patient_id`),
   UNIQUE INDEX `PatientID_UNIQUE` (`patient_id` ASC) VISIBLE,
   INDEX `fk_Patients_Insurance1_idx` (`insurance_id` ASC) VISIBLE,
