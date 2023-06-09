@@ -50,14 +50,14 @@ CREATE TABLE IF NOT EXISTS `hospital`.`Employees` (
   `employee_id` INT NOT NULL AUTO_INCREMENT,
   `name` VARCHAR(45) NULL,
   `DOB` VARCHAR(45) NULL,
-  `payroll_id` INT NOT NULL,
+  `payroll_id` INT NULL,
   PRIMARY KEY (`employee_id`),
   INDEX `fk_Employees_Payrolls1_idx` (`payroll_id` ASC) VISIBLE,
   UNIQUE INDEX `employee_id_UNIQUE` (`employee_id` ASC) VISIBLE,
   CONSTRAINT `fk_Employees_Payrolls1`
     FOREIGN KEY (`payroll_id`)
     REFERENCES `hospital`.`Payrolls` (`payroll_id`)
-    ON DELETE NO ACTION
+    ON DELETE SET NULL
     ON UPDATE NO ACTION)
 ENGINE = InnoDB;
 
@@ -77,8 +77,8 @@ CREATE TABLE IF NOT EXISTS `hospital`.`Doctors` (
   CONSTRAINT `fk_Doctors_Employees1`
     FOREIGN KEY (`employee_id`)
     REFERENCES `hospital`.`Employees` (`employee_id`)
-    ON DELETE NO ACTION
-    ON UPDATE NO ACTION)
+    ON DELETE CASCADE
+    ON UPDATE CASCADE)
 ENGINE = InnoDB;
 
 
@@ -99,13 +99,13 @@ CREATE TABLE IF NOT EXISTS `hospital`.`Patients` (
   CONSTRAINT `fk_Patients_Insurance1`
     FOREIGN KEY (`insurance_id`)
     REFERENCES `hospital`.`Insurance` (`Insurance_id`)
-    ON DELETE NO ACTION
-    ON UPDATE NO ACTION,
+    ON DELETE SET NULL
+    ON UPDATE CASCADE,
   CONSTRAINT `fk_Patients_Doctors1`
     FOREIGN KEY (`doctor_id`)
     REFERENCES `hospital`.`Doctors` (`doctor_id`)
-    ON DELETE NO ACTION
-    ON UPDATE NO ACTION)
+    ON DELETE SET NULL
+    ON UPDATE CASCADE)
 ENGINE = InnoDB;
 
 
@@ -134,15 +134,15 @@ ENGINE = InnoDB;
 CREATE TABLE IF NOT EXISTS `hospital`.`Departments` (
   `department_id` INT NOT NULL AUTO_INCREMENT,
   `name` VARCHAR(45) NULL,
-  `head` INT NOT NULL,
+  `head` INT NULL,
   PRIMARY KEY (`department_id`),
   UNIQUE INDEX `idDepartments_UNIQUE` (`department_id` ASC) VISIBLE,
   INDEX `fk_Departments_Doctors1_idx` (`head` ASC) VISIBLE,
   CONSTRAINT `fk_Departments_Doctors1`
     FOREIGN KEY (`head`)
     REFERENCES `hospital`.`Doctors` (`doctor_id`)
-    ON DELETE CASCADE
-    ON UPDATE CASCADE)
+    ON DELETE SET NULL
+    ON UPDATE SET NULL)
 ENGINE = InnoDB;
 
 
@@ -206,11 +206,11 @@ ENGINE = InnoDB;
 -- -----------------------------------------------------
 CREATE TABLE IF NOT EXISTS `hospital`.`Appointments` (
   `appointment_id` INT NOT NULL AUTO_INCREMENT,
-  `room_id` INT NOT NULL,
+  `room_id` INT NULL,
   `start_time` DATETIME NOT NULL,
   `end_time` DATETIME NOT NULL,
-  `doctor_id` INT NOT NULL,
-  `nurse_id` INT NOT NULL,
+  `doctor_id` INT NULL,
+  `nurse_id` INT NULL,
   `patient_id` BIGINT(16) NOT NULL,
   PRIMARY KEY (`appointment_id`),
   INDEX `fk_Appointments_Rooms1_idx` (`room_id` ASC) VISIBLE,
@@ -221,23 +221,23 @@ CREATE TABLE IF NOT EXISTS `hospital`.`Appointments` (
   CONSTRAINT `fk_Appointments_Rooms1`
     FOREIGN KEY (`room_id`)
     REFERENCES `hospital`.`Rooms` (`number`)
-    ON DELETE NO ACTION
+    ON DELETE SET NULL
     ON UPDATE NO ACTION,
   CONSTRAINT `fk_Appointments_Doctors1`
     FOREIGN KEY (`doctor_id`)
     REFERENCES `hospital`.`Doctors` (`doctor_id`)
-    ON DELETE NO ACTION
-    ON UPDATE NO ACTION,
+    ON DELETE SET NULL
+    ON UPDATE CASCADE,
   CONSTRAINT `fk_Appointments_Nurses1`
     FOREIGN KEY (`nurse_id`)
     REFERENCES `hospital`.`Nurses` (`nurse_id`)
-    ON DELETE NO ACTION
-    ON UPDATE NO ACTION,
+    ON DELETE SET NULL
+    ON UPDATE CASCADE,
   CONSTRAINT `fk_Appointments_Patients1`
     FOREIGN KEY (`patient_id`)
     REFERENCES `hospital`.`Patients` (`patient_id`)
-    ON DELETE NO ACTION
-    ON UPDATE NO ACTION)
+    ON DELETE CASCADE
+    ON UPDATE CASCADE)
 ENGINE = InnoDB;
 
 
@@ -253,13 +253,13 @@ CREATE TABLE IF NOT EXISTS `hospital`.`Doctors_Departments` (
   CONSTRAINT `fk_Doctors_has_Departments_Doctors1`
     FOREIGN KEY (`doctor_id`)
     REFERENCES `hospital`.`Doctors` (`doctor_id`)
-    ON DELETE NO ACTION
-    ON UPDATE NO ACTION,
+    ON DELETE CASCADE
+    ON UPDATE CASCADE,
   CONSTRAINT `fk_Doctors_has_Departments_Departments1`
     FOREIGN KEY (`department_id`)
     REFERENCES `hospital`.`Departments` (`department_id`)
-    ON DELETE NO ACTION
-    ON UPDATE NO ACTION)
+    ON DELETE CASCADE
+    ON UPDATE CASCADE)
 ENGINE = InnoDB;
 
 

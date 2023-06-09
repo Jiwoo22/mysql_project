@@ -8,16 +8,6 @@ public class Doctor {
     private String email;
     private int employeeId;
 
-//    public Doctor() {}
-//
-//    public Doctor(int doctorId, String name, String specialization, String email, int employeeId) {
-//        this.doctorId = doctorId;
-//        this.name = name;
-//        this.specialization = specialization;
-//        this.email = email;
-//        this.employeeId = employeeId;
-//    }
-
     public int getDoctorId() {
         return doctorId;
     }

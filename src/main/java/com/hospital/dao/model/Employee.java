@@ -7,15 +7,6 @@ public class Employee {
     private String dateOfBirth;
     private int payrollId;
 
-//    public Employee() {}
-//
-//    public Employee(int employeeId, String name, String dateOfBirth, int payrollId) {
-//        this.employeeId = employeeId;
-//        this.name = name;
-//        this.dateOfBirth = dateOfBirth;
-//        this.payrollId = payrollId;
-//    }
-
     public int getEmployeeId() {
         return employeeId;
     }
