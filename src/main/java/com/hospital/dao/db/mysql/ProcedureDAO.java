@@ -12,25 +12,30 @@ import java.util.List;
 public class ProcedureDAO extends AbstractDAO<Procedure> {
     private ConnectionPool connectionPool;
 
+    private static final String SQL_FIND_BY_ID = "SELECT * FROM Procedures WHERE code = ?";
+    private static final String SQL_FIND_ALL = "SELECT * FROM Procedures";
+    private static final String SQL_SAVE = "INSERT INTO Procedures (name, cost) VALUES (?, ?)";
+    private static final String SQL_UPDATE = "UPDATE Procedures SET name = ?, cost = ? WHERE code = ?";
+    private static final String SQL_DELETE = "DELETE FROM Procedures WHERE code = ?";
+
     public ProcedureDAO(ConnectionPool connectionPool) {
         this.connectionPool = connectionPool;
     }
 
     @Override
     public Procedure findById(int id) {
-        Procedure procedure = null;
         try (Connection connection = connectionPool.getConnection();
              PreparedStatement statement = connection.prepareStatement(
-                     "SELECT * FROM Procedures WHERE code = ?")) {
+                     SQL_FIND_BY_ID)) {
             statement.setInt(1, id);
             ResultSet resultSet = statement.executeQuery();
             if (resultSet.next()) {
-                procedure = getProcedureFromResultSet(resultSet);
+                return getProcedureFromResultSet(resultSet);
             }
         } catch (SQLException e) {
             throw new DAOException("Error while finding procedure by ID", e);
         }
-        return procedure;
+        return null;
     }
 
     @Override
@@ -38,7 +43,7 @@ public class ProcedureDAO extends AbstractDAO<Procedure> {
         List<Procedure> procedures = new ArrayList<>();
         try (Connection connection = connectionPool.getConnection();
              PreparedStatement statement = connection.prepareStatement(
-                     "SELECT * FROM Procedures")) {
+                     SQL_FIND_ALL)) {
             ResultSet resultSet = statement.executeQuery();
             while (resultSet.next()) {
                 Procedure procedure = getProcedureFromResultSet(resultSet);
@@ -58,10 +63,9 @@ public class ProcedureDAO extends AbstractDAO<Procedure> {
 
         try (Connection connection = connectionPool.getConnection();
              PreparedStatement statement = connection.prepareStatement(
-                     "INSERT INTO Procedures (name, cost) VALUES (?, ?)",
+                     SQL_SAVE,
                      Statement.RETURN_GENERATED_KEYS)) {
-            statement.setString(1, entity.getName());
-            statement.setFloat(2, entity.getCost());
+            setProcedureStatementParameters(statement, entity);
             statement.executeUpdate();
 
             // Retrieve the generated ID
@@ -84,9 +88,8 @@ public class ProcedureDAO extends AbstractDAO<Procedure> {
 
         try (Connection connection = connectionPool.getConnection();
              PreparedStatement statement = connection.prepareStatement(
-                     "UPDATE Procedures SET name = ?, cost = ? WHERE code = ?")) {
-            statement.setString(1, entity.getName());
-            statement.setFloat(2, entity.getCost());
+                    SQL_UPDATE )) {
+            setProcedureStatementParameters(statement, entity);
             statement.setInt(3, entity.getCode());
             statement.executeUpdate();
         } catch (SQLException e) {
@@ -102,7 +105,7 @@ public class ProcedureDAO extends AbstractDAO<Procedure> {
 
             try (Connection connection = connectionPool.getConnection();
                  PreparedStatement statement = connection.prepareStatement(
-                         "DELETE FROM Procedures WHERE code = ?")) {
+                         SQL_DELETE)) {
                 statement.setInt(1, entity.getCode());
                 statement.executeUpdate();
             } catch (SQLException e) {
@@ -116,5 +119,10 @@ public class ProcedureDAO extends AbstractDAO<Procedure> {
             procedure.setName(resultSet.getString("name"));
             procedure.setCost(resultSet.getFloat("cost"));
             return procedure;
+        }
+
+        private void setProcedureStatementParameters(PreparedStatement statement, Procedure entity) throws SQLException {
+            statement.setString(1, entity.getName());
+            statement.setFloat(2, entity.getCost());
         }
     }

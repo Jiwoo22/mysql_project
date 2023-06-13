@@ -14,6 +14,11 @@ import java.util.List;
 
 public class MedicationDAO extends AbstractDAO<Medication> {
     private ConnectionPool connectionPool;
+    private static final String SELECT_BY_ID_QUERY = "SELECT * FROM Medications WHERE medication_id = ?";
+    private static final String SELECT_ALL_QUERY = "SELECT * FROM Medications";
+    private static final String INSERT_QUERY = "INSERT INTO Medications (name, brand, description) VALUES (?, ?, ?)";
+    private static final String UPDATE_QUERY = "UPDATE Medications SET name = ?, brand = ?, description = ? WHERE medication_id = ?";
+    private static final String DELETE_QUERY = "DELETE FROM Medications WHERE medication_id = ?";
 
     public MedicationDAO(ConnectionPool connectionPool) {
         this.connectionPool = connectionPool;
@@ -21,26 +26,24 @@ public class MedicationDAO extends AbstractDAO<Medication> {
 
     @Override
     public Medication findById(int id) {
-        Medication medication = null;
         try (Connection connection = connectionPool.getConnection();
-             PreparedStatement statement = connection.prepareStatement(
-                     "SELECT * FROM Medications WHERE medication_id = ?")) {
+             PreparedStatement statement = connection.prepareStatement(SELECT_BY_ID_QUERY)) {
             statement.setInt(1, id);
             ResultSet resultSet = statement.executeQuery();
             if (resultSet.next()) {
-                medication = getMedicationFromResultSet(resultSet);
+                return getMedicationFromResultSet(resultSet);
             }
         } catch (SQLException e) {
             throw new DAOException("Error while finding medication by id", e);
         }
-        return medication;
+        return null;
     }
 
     @Override
     public List<Medication> findAll() {
         List<Medication> medications = new ArrayList<>();
         try (Connection connection = connectionPool.getConnection();
-             PreparedStatement statement = connection.prepareStatement("SELECT * FROM Medications")) {
+             PreparedStatement statement = connection.prepareStatement(SELECT_ALL_QUERY)) {
             ResultSet resultSet = statement.executeQuery();
             while (resultSet.next()) {
                 Medication medication = getMedicationFromResultSet(resultSet);
@@ -59,12 +62,9 @@ public class MedicationDAO extends AbstractDAO<Medication> {
         }
 
         try (Connection connection = connectionPool.getConnection();
-             PreparedStatement statement = connection.prepareStatement(
-                     "INSERT INTO Medications (name, brand, description) VALUES (?, ?, ?)",
+             PreparedStatement statement = connection.prepareStatement(INSERT_QUERY,
                      PreparedStatement.RETURN_GENERATED_KEYS)) {
-            statement.setString(1, entity.getName());
-            statement.setString(2, entity.getBrand());
-            statement.setString(3, entity.getDescription());
+            setMedicationStatementParameters(statement, entity);
             statement.executeUpdate();
 
             ResultSet generatedKeys = statement.getGeneratedKeys();
@@ -83,11 +83,8 @@ public class MedicationDAO extends AbstractDAO<Medication> {
         }
 
         try (Connection connection = connectionPool.getConnection();
-             PreparedStatement statement = connection.prepareStatement(
-                     "UPDATE Medications SET name = ?, brand = ?, description = ? WHERE medication_id = ?")) {
-            statement.setString(1, entity.getName());
-            statement.setString(2, entity.getBrand());
-            statement.setString(3, entity.getDescription());
+             PreparedStatement statement = connection.prepareStatement(UPDATE_QUERY)) {
+            setMedicationStatementParameters(statement, entity);
             statement.setInt(4, entity.getMedicationId());
             statement.executeUpdate();
         } catch (SQLException e) {
@@ -102,13 +99,18 @@ public class MedicationDAO extends AbstractDAO<Medication> {
         }
 
         try (Connection connection = connectionPool.getConnection();
-             PreparedStatement statement = connection.prepareStatement(
-                     "DELETE FROM Medications WHERE medication_id = ?")) {
+             PreparedStatement statement = connection.prepareStatement(DELETE_QUERY)) {
             statement.setInt(1, entity.getMedicationId());
             statement.executeUpdate();
         } catch (SQLException e) {
             throw new DAOException("Error while deleting medication", e);
         }
+    }
+
+    private void setMedicationStatementParameters(PreparedStatement statement, Medication entity) throws SQLException {
+        statement.setString(1, entity.getName());
+        statement.setString(2, entity.getBrand());
+        statement.setString(3, entity.getDescription());
     }
 
     private Medication getMedicationFromResultSet(ResultSet resultSet) throws SQLException {

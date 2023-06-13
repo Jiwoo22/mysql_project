@@ -11,6 +11,11 @@ import java.util.List;
 
 public class NurseDAO implements GenericDAO<Nurse> {
     private ConnectionPool connectionPool;
+    private static final String SELECT_BY_ID_QUERY = "SELECT * FROM Nurses WHERE nurse_id = ?";
+    private static final String SELECT_ALL_QUERY = "SELECT * FROM Nurses";
+    private static final String INSERT_QUERY = "INSERT INTO Nurses (name, email, employee_id) VALUES (?, ?, ?)";
+    private static final String UPDATE_QUERY = "UPDATE Nurses SET name = ?, email = ?, employee_id = ? WHERE nurse_id = ?";
+    private static final String DELETE_QUERY = "DELETE FROM Nurses WHERE nurse_id = ?";
 
     public NurseDAO(ConnectionPool connectionPool) {
         this.connectionPool = connectionPool;
@@ -18,25 +23,24 @@ public class NurseDAO implements GenericDAO<Nurse> {
 
     @Override
     public Nurse findById(int id) {
-        Nurse nurse = null;
         try (Connection connection = connectionPool.getConnection();
-             PreparedStatement statement = connection.prepareStatement("SELECT * FROM Nurses WHERE nurse_id = ?")) {
+             PreparedStatement statement = connection.prepareStatement(SELECT_BY_ID_QUERY)) {
             statement.setInt(1, id);
             ResultSet resultSet = statement.executeQuery();
             if (resultSet.next()) {
-                nurse = getNurseFromResultSet(resultSet);
+                return getNurseFromResultSet(resultSet);
             }
         } catch (SQLException e) {
             throw new DAOException("Error while finding nurse by ID", e);
         }
-        return nurse;
+        return null;
     }
 
     @Override
     public List<Nurse> findAll() {
         List<Nurse> nurses = new ArrayList<>();
         try (Connection connection = connectionPool.getConnection();
-             PreparedStatement statement = connection.prepareStatement("SELECT * FROM Nurses")) {
+             PreparedStatement statement = connection.prepareStatement(SELECT_ALL_QUERY)) {
             ResultSet resultSet = statement.executeQuery();
             while (resultSet.next()) {
                 Nurse nurse = getNurseFromResultSet(resultSet);
@@ -55,26 +59,21 @@ public class NurseDAO implements GenericDAO<Nurse> {
         }
 
         try (Connection connection = connectionPool.getConnection();
-             PreparedStatement statement = connection.prepareStatement(
-                     "INSERT INTO Nurses (nurse_id, name, email, employee_id) VALUES (?, ?, ?, ?)",
+             PreparedStatement statement = connection.prepareStatement(INSERT_QUERY,
                      Statement.RETURN_GENERATED_KEYS)) {
-            statement.setInt(1, entity.getNurseId());
-            statement.setString(2, entity.getName());
-            statement.setString(3, entity.getEmail());
-            statement.setInt(4, entity.getEmployeeId());
+            setNurseStatementParameters(statement, entity);
             statement.executeUpdate();
 
-            // Retrieve the generated ID
             ResultSet generatedKeys = statement.getGeneratedKeys();
             if (generatedKeys.next()) {
                 int generatedId = generatedKeys.getInt(1);
                 entity.setNurseId(generatedId);
             }
-
         } catch (SQLException e) {
             throw new DAOException("Error while saving nurse", e);
         }
     }
+
     @Override
     public void update(Nurse entity) {
         if (entity == null) {
@@ -82,11 +81,8 @@ public class NurseDAO implements GenericDAO<Nurse> {
         }
 
         try (Connection connection = connectionPool.getConnection();
-             PreparedStatement statement = connection.prepareStatement(
-                     "UPDATE Nurses SET name = ?, email = ?, employee_id = ? WHERE nurse_id = ?")) {
-            statement.setString(1, entity.getName());
-            statement.setString(2, entity.getEmail());
-            statement.setInt(3, entity.getEmployeeId());
+             PreparedStatement statement = connection.prepareStatement(UPDATE_QUERY)) {
+            setNurseStatementParameters(statement, entity);
             statement.setInt(4, entity.getNurseId());
             statement.executeUpdate();
         } catch (SQLException e) {
@@ -101,12 +97,18 @@ public class NurseDAO implements GenericDAO<Nurse> {
         }
 
         try (Connection connection = connectionPool.getConnection();
-             PreparedStatement statement = connection.prepareStatement("DELETE FROM Nurses WHERE nurse_id = ?")) {
+             PreparedStatement statement = connection.prepareStatement(DELETE_QUERY)) {
             statement.setInt(1, entity.getNurseId());
             statement.executeUpdate();
         } catch (SQLException e) {
             throw new DAOException("Error while deleting nurse", e);
         }
+    }
+
+    private void setNurseStatementParameters(PreparedStatement statement, Nurse entity) throws SQLException {
+        statement.setString(1, entity.getName());
+        statement.setString(2, entity.getEmail());
+        statement.setInt(3, entity.getEmployeeId());
     }
 
     private Nurse getNurseFromResultSet(ResultSet resultSet) throws SQLException {
@@ -118,9 +120,3 @@ public class NurseDAO implements GenericDAO<Nurse> {
         return nurse;
     }
 }
-
-
-
-
-
-

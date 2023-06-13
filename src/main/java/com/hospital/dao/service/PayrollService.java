@@ -24,7 +24,7 @@ public class PayrollService implements Service<Payroll>{
     }
 
     public Payroll findByAccountNumber(int acctNumber) {
-        return payrollDao.findByAcctNum(acctNumber);
+        return payrollDao.findByAccountNumber(acctNumber);
     }
 
     @Override

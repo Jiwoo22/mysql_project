@@ -31,13 +31,13 @@ public class Main {
         ConnectionPool connectionPool = new ConnectionPool(props.getProperty("db.url")
                 , props.getProperty("db.user"), props.getProperty("db.password"), 12);
 
-//         Create instances of DAOs with the ConnectionPool
-//        GenericDAO<Payroll> payrollDAO = new PayrollDAO(connectionPool);
-//        GenericDAO<Employee> employeeDao = new EmployeeDAO(connectionPool);
-//        GenericDAO<Doctor> doctorDao = new DoctorDAO(connectionPool);
-//        GenericDAO<Nurse> nurseDao = new NurseDAO(connectionPool);
-//        GenericDAO<Patient> patientDao = new PatientDAO(connectionPool);
-//        GenericDAO<Insurance> insuranceDao = new InsuranceDAO(connectionPool);
+        // Create instances of DAOs with the ConnectionPool
+        GenericDAO<Payroll> payrollDAO = new PayrollDAO(connectionPool);
+        GenericDAO<Employee> employeeDao = new EmployeeDAO(connectionPool);
+        GenericDAO<Doctor> doctorDao = new DoctorDAO(connectionPool);
+        GenericDAO<Nurse> nurseDao = new NurseDAO(connectionPool);
+        GenericDAO<Patient> patientDao = new PatientDAO(connectionPool);
+        GenericDAO<Insurance> insuranceDao = new InsuranceDAO(connectionPool);
 //        GenericDAO<Department>  departmentDao = new DepartmentDAO(connectionPool);
 //        AppointmentDAO appointmentDAO = new AppointmentDAO(connectionPool);
 //        RoomDAO roomDao = new RoomDAO(connectionPool);
@@ -46,12 +46,12 @@ public class Main {
 //        BlockDAO blockDAO = new BlockDAO(connectionPool);
 
         // Create instances of Services
-//        PayrollService payrollService = new PayrollService((PayrollDAO) payrollDAO);
-//        EmployeeService employeeService = new EmployeeService(employeeDao);
-//        DoctorService doctorService = new DoctorService(doctorDao);
-//        NurseService nurseService = new NurseService(nurseDao);
-//        PatientService patientService = new PatientService(patientDao);
-//        InsuranceService insuranceService = new InsuranceService(insuranceDao);
+        PayrollService payrollService = new PayrollService((PayrollDAO) payrollDAO);
+        EmployeeService employeeService = new EmployeeService(employeeDao);
+        DoctorService doctorService = new DoctorService(doctorDao);
+        NurseService nurseService = new NurseService(nurseDao);
+        PatientService patientService = new PatientService(patientDao);
+        InsuranceService insuranceService = new InsuranceService(insuranceDao);
 //        DepartmentService departmentService = new DepartmentService(departmentDao);
 //        AppointmentService appointmentService = new AppointmentService(appointmentDAO);
 //        RoomService roomService = new RoomService(roomDao);
@@ -60,64 +60,64 @@ public class Main {
 //        BlockService blockService = new BlockService(blockDAO);
 
 
-//        // Create operation
-//        Payroll payroll1 = new Payroll();
-//        payroll1.setNetSalary(270000.0F);
-//        payroll1.setBonusSalary(30000.0F);
-//        payroll1.setAccountNumber(1000020);
-//        payrollService.save(payroll1);
-//        System.out.println(payroll1);
+        // Create operation
+        Payroll payroll1 = new Payroll();
+        payroll1.setNetSalary(270000.0F);
+        payroll1.setBonusSalary(30000.0F);
+        payroll1.setAccountNumber(1000024);
+        payrollService.save(payroll1);
+        System.out.println(payroll1);
 //
-//        Payroll payroll2 = new Payroll();
-//        payroll2.setNetSalary(200000.0F);
-//        payroll2.setBonusSalary(20000.0F);
-//        payroll2.setAccountNumber(1000021);
-//        payrollService.save(payroll2);
-//        System.out.println(payroll2);
+        Payroll payroll2 = new Payroll();
+        payroll2.setNetSalary(200000.0F);
+        payroll2.setBonusSalary(20000.0F);
+        payroll2.setAccountNumber(1000025);
+        payrollService.save(payroll2);
+        System.out.println(payroll2);
+
+        Employee employee1 = new Employee();
+        employee1.setName("Olivia Kim");
+        employee1.setDateOfBirth("2000-07-01");
+        employee1.setPayrollId(payroll1.getPayrollId());
+        employeeService.save(employee1);
+        System.out.println("New employee created: " + employee1);
+
+        Employee employee2 = new Employee();
+        employee2.setName("Liam Lee");
+        employee2.setDateOfBirth("1990-07-01");
+        employee2.setPayrollId(payroll2.getPayrollId());
+        employeeService.save(employee2);
+        System.out.println("New employee created: " + employee2);
 //
-//        Employee employee1 = new Employee();
-//        employee1.setName("Olivia Kim");
-//        employee1.setDateOfBirth("2000-07-01");
-//        employee1.setPayrollId(payroll1.getPayrollId());
-//        employeeService.save(employee1);
-//        System.out.println("New employee created: " + employee1);
+        Doctor doctor = new Doctor();
+        doctor.setName(employee1.getName());
+        doctor.setSpecialization("Family Medicine");
+        doctor.setEmail("olivia@example.com");
+        doctor.setEmployeeId(employee1.getEmployeeId());
+        doctorService.save(doctor);
+        System.out.println("New doctor created: " + doctor);
+
+        Nurse nurse = new Nurse();
+        nurse.setName(employee2.getName());
+        nurse.setEmail("liam@example.com");
+        nurse.setEmployeeId(employee2.getEmployeeId());
+        nurseService.save(nurse);
+        System.out.println("New nurse created: " + nurse);
 //
-//        Employee employee2 = new Employee();
-//        employee2.setName("Liam Lee");
-//        employee2.setDateOfBirth("1990-07-01");
-//        employee2.setPayrollId(payroll2.getPayrollId());
-//        employeeService.save(employee2);
-//        System.out.println("New employee created: " + employee2);
-//
-//        Doctor doctor = new Doctor();
-//        doctor.setName(employee1.getName());
-//        doctor.setSpecialization("Family Medicine");
-//        doctor.setEmail("olivia@example.com");
-//        doctor.setEmployeeId(employee1.getEmployeeId());
-//        doctorService.save(doctor);
-//        System.out.println("New doctor created: " + doctor);
-//
-//        Nurse nurse = new Nurse();
-//        nurse.setName(employee2.getName());
-//        nurse.setEmail("liam@example.com");
-//        nurse.setEmployeeId(employee2.getEmployeeId());
-//        nurseService.save(nurse);
-//        System.out.println("New nurse created: " + nurse);
-//
-//        Insurance insurance = new Insurance();
-//        insurance.setType("PPO");
-//        insurance.setExpirationDate("2033-01-01");
-//        insuranceService.save(insurance);
-//        System.out.println("New insurance created: " + insurance);
-//
-//        Patient patient = new Patient();
-//        patient.setName("Amy Smith");
-//        patient.setDateOfBirth("2010-01-01");
-//        patient.setPhone("123456789");
-//        patient.setDoctorId(doctor.getDoctorId());
-//        patient.setInsuranceId(insurance.getInsuranceId());
-//        patientService.save(patient);
-//        System.out.println("New patient created: " + patient);
+        Insurance insurance = new Insurance();
+        insurance.setType("PPO");
+        insurance.setExpirationDate("2033-01-01");
+        insuranceService.save(insurance);
+        System.out.println("New insurance created: " + insurance);
+
+        Patient patient = new Patient();
+        patient.setName("Amy Smith");
+        patient.setDateOfBirth("2010-01-01");
+        patient.setPhone("123456789");
+        patient.setDoctorId(doctor.getDoctorId());
+        patient.setInsuranceId(insurance.getInsuranceId());
+        patientService.save(patient);
+        System.out.println("New patient created: " + patient);
 
 //        // -------Payroll-----
 //        // Read operations
@@ -218,20 +218,23 @@ public class Main {
 //        //---------Doctors_Departments----------
 
 
-//        //---------Procedure----------//
+////        //---------Procedure----------//
 //        Procedure procedure = new Procedure();
 //        procedure.setName("X-Ray");
 //        procedure.setCost(150.0f);
 //
 //        procedureService.save(procedure);
 //        System.out.println("New procedure created with code: " + procedure.getCode());
-//
+
 //        Procedure retrievedProcedure = procedureService.findById(procedure.getCode());
 //        System.out.println("Retrieved procedure: " + retrievedProcedure);
 //
 //        retrievedProcedure.setName("MRI");
 //        procedureService.update(retrievedProcedure);
 //        System.out.println("Procedure updated: " + retrievedProcedure);
+//
+//        procedureService.delete(retrievedProcedure);
+//        System.out.println("Deleted updated: " + retrievedProcedure);
 
 
 //        //---------Block----------
@@ -263,38 +266,56 @@ public class Main {
 //        System.out.println("Found room: " + room2);
 
 
-        //---------Appointment---------
-        GenericDAO<Doctor> doctorDao = new DoctorDAO(connectionPool);
-        GenericDAO<Nurse> nurseDao = new NurseDAO(connectionPool);
-        GenericDAO<Patient> patientDao = new PatientDAO(connectionPool);
-        AppointmentDAO appointmentDAO = new AppointmentDAO(connectionPool);
-        RoomDAO roomDao = new RoomDAO(connectionPool);
+//        //---------Appointment---------
+//        GenericDAO<Doctor> doctorDao = new DoctorDAO(connectionPool);
+//        GenericDAO<Nurse> nurseDao = new NurseDAO(connectionPool);
+//        GenericDAO<Patient> patientDao = new PatientDAO(connectionPool);
+//        AppointmentDAO appointmentDAO = new AppointmentDAO(connectionPool);
+//        RoomDAO roomDao = new RoomDAO(connectionPool);
+//
+//        DoctorService doctorService = new DoctorService(doctorDao);
+//        NurseService nurseService = new NurseService(nurseDao);
+//        RoomService roomService = new RoomService(roomDao);
+//        PatientService patientService = new PatientService(patientDao);
+//        AppointmentService appointmentService = new AppointmentService(appointmentDAO);
+//
+//        Room room = roomService.findById(105);
 
-        DoctorService doctorService = new DoctorService(doctorDao);
-        NurseService nurseService = new NurseService(nurseDao);
-        RoomService roomService = new RoomService(roomDao);
-        PatientService patientService = new PatientService(patientDao);
-        AppointmentService appointmentService = new AppointmentService(appointmentDAO);
+//        List<Nurse> allNurses = nurseService.findAll();
+//        System.out.println("All nurses: ");
+//        for (Nurse n : allNurses) {
+//            System.out.println("\t" + n);
+//        }
+//
+//        List<Doctor> allDoctors = doctorService.findAll();
+//        System.out.println("All doctors: ");
+//        for (Doctor doc : allDoctors) {
+//            System.out.println("\t" + doc);
+//        }
 
-        Room room = roomService.findById(105);
+//        List<Patient> allPatients = patientService.findAll();
+//        System.out.println("All patients: ");
+//        for (Patient pat : allPatients) {
+//            System.out.println("\t" + pat);
+//        }
 
-        Appointment appointment = new Appointment();
-        appointment.setPatient(patientService.findById(8));
-        appointment.setDoctor(doctorService.findById(14));
-        appointment.setNurse(nurseService.findById(12));
-        appointment.setStartTime(Timestamp.valueOf("2023-07-01 12:00:00"));
-        appointment.setEndTime(Timestamp.valueOf("2023-07-01 12:30:00"));
-        appointment.setRoom(room);
-        appointmentService.save(appointment);
-        System.out.println("Saved appointment: " + appointment);
-
-        appointment.setEndTime(Timestamp.valueOf("2023-07-01 1:00:00"));
-        appointmentService.update(appointment);
-        System.out.println("Updated appointment: " +
-                appointmentService.findById(appointment.getAppointmentId()));
-
-        appointmentService.delete(appointment);
-        System.out.println("Delete appointment: " + appointment);
+//        Appointment appointment = new Appointment();
+//        appointment.setPatient(patientService.findById(8));
+//        appointment.setDoctor(doctorService.findById(14));
+//        appointment.setNurse(nurseService.findById(12));
+//        appointment.setStartTime(Timestamp.valueOf("2023-07-01 12:00:00"));
+//        appointment.setEndTime(Timestamp.valueOf("2023-07-01 12:30:00"));
+//        appointment.setRoom(room);
+//        appointmentService.save(appointment);
+//        System.out.println("Saved appointment: " + appointment);
+//
+//        appointment.setEndTime(Timestamp.valueOf("2023-07-01 1:00:00"));
+//        appointmentService.update(appointment);
+//        System.out.println("Updated appointment: " +
+//                appointmentService.findById(appointment.getAppointmentId()));
+//
+//        appointmentService.delete(appointment);
+//        System.out.println("Delete appointment: " + appointment);
 
 
 //        //---------Medication----------

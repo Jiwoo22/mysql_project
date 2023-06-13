@@ -12,25 +12,29 @@ import java.util.List;
 public class DepartmentDAO extends AbstractDAO<Department> {
     private ConnectionPool connectionPool;
 
+    private static final String SELECT_BY_ID_QUERY = "SELECT * FROM Departments WHERE department_id = ?";
+    private static final String SELECT_ALL_QUERY = "SELECT * FROM Departments";
+    private static final String INSERT_QUERY = "INSERT INTO Departments (name, head) VALUES (?, ?)";
+    private static final String UPDATE_QUERY = "UPDATE Departments SET name = ?, head = ? WHERE department_id = ?";
+    private static final String DELETE_QUERY = "DELETE FROM Departments WHERE department_id = ?";
+
     public DepartmentDAO(ConnectionPool connectionPool) {
         this.connectionPool = connectionPool;
     }
 
     @Override
     public Department findById(int id) {
-        Department department = null;
         try (Connection connection = connectionPool.getConnection();
-             PreparedStatement statement = connection.prepareStatement(
-                     "SELECT * FROM Departments WHERE department_id = ?")) {
+             PreparedStatement statement = connection.prepareStatement(SELECT_BY_ID_QUERY)) {
             statement.setInt(1, id);
             ResultSet resultSet = statement.executeQuery();
             if (resultSet.next()) {
-                department = getDepartmentFromResultSet(resultSet);
+                return getDepartmentFromResultSet(resultSet);
             }
         } catch (SQLException e) {
             throw new DAOException("Error while finding department by ID", e);
         }
-        return department;
+        return null;
     }
 
     @Override
@@ -38,7 +42,7 @@ public class DepartmentDAO extends AbstractDAO<Department> {
         List<Department> departments = new ArrayList<>();
         try (Connection connection = connectionPool.getConnection();
              PreparedStatement statement = connection.prepareStatement(
-                     "SELECT * FROM Departments")) {
+                     SELECT_ALL_QUERY)) {
             ResultSet resultSet = statement.executeQuery();
             while (resultSet.next()) {
                 Department department = getDepartmentFromResultSet(resultSet);
@@ -58,10 +62,9 @@ public class DepartmentDAO extends AbstractDAO<Department> {
 
         try (Connection connection = connectionPool.getConnection();
              PreparedStatement statement = connection.prepareStatement(
-                     "INSERT INTO Departments (name, head) VALUES (?, ?)",
+                     INSERT_QUERY,
                      Statement.RETURN_GENERATED_KEYS)) {
-            statement.setString(1, entity.getName());
-            statement.setInt(2, entity.getHead());
+            setDepartmentStatementParameters(statement, entity);
             statement.executeUpdate();
 
             // Retrieve the generated ID
@@ -83,9 +86,8 @@ public class DepartmentDAO extends AbstractDAO<Department> {
 
         try (Connection connection = connectionPool.getConnection();
              PreparedStatement statement = connection.prepareStatement(
-                     "UPDATE Departments SET name = ?, head = ? WHERE department_id = ?")) {
-            statement.setString(1, entity.getName());
-            statement.setInt(2, entity.getHead());
+                     UPDATE_QUERY)) {
+            setDepartmentStatementParameters(statement, entity);
             statement.setInt(3, entity.getDepartmentId());
             statement.executeUpdate();
         } catch (SQLException e) {
@@ -101,12 +103,17 @@ public class DepartmentDAO extends AbstractDAO<Department> {
 
         try (Connection connection = connectionPool.getConnection();
              PreparedStatement statement = connection.prepareStatement(
-                     "DELETE FROM Departments WHERE department_id = ?")) {
+                     DELETE_QUERY)) {
             statement.setInt(1, entity.getDepartmentId());
             statement.executeUpdate();
         } catch (SQLException e) {
             throw new DAOException("Error while deleting department", e);
         }
+    }
+
+    private void setDepartmentStatementParameters(PreparedStatement statement, Department department) throws SQLException {
+        statement.setString(1, department.getName());
+        statement.setInt(2, department.getHead());
     }
 
     private Department getDepartmentFromResultSet(ResultSet resultSet) throws SQLException {

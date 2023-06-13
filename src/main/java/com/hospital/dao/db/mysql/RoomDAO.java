@@ -2,7 +2,6 @@ package com.hospital.dao.db.mysql;
 
 import com.hospital.AbstractDAO;
 import com.hospital.dao.model.Block;
-import com.hospital.dao.model.Payroll;
 import com.hospital.dao.model.Room;
 import com.hospital.exceptions.DAOException;
 import com.hospital.utils.ConnectionPool;
@@ -14,25 +13,30 @@ import java.util.List;
 public class RoomDAO extends AbstractDAO<Room> {
     private ConnectionPool connectionPool;
 
+    private static final String FIND_BY_ID_QUERY = "SELECT * FROM Rooms WHERE number = ?";
+    private static final String FIND_ALL_QUERY = "SELECT * FROM Rooms";
+    private static final String INSERT_QUERY = "INSERT INTO Rooms (type, capacity, Block_floor, Block_code) VALUES (?, ?, ?, ?)";
+    private static final String UPDATE_QUERY = "UPDATE Rooms SET type = ?, capacity = ?, Block_floor = ?, Block_code = ? WHERE number = ?";
+    private static final String DELETE_QUERY = "DELETE FROM Rooms WHERE number = ?";
+
     public RoomDAO(ConnectionPool connectionPool) {
         this.connectionPool = connectionPool;
     }
 
     @Override
     public Room findById(int number) {
-        Room room = null;
         try (Connection connection = connectionPool.getConnection();
              PreparedStatement statement = connection.prepareStatement(
-                     "SELECT * FROM Rooms WHERE number = ?")) {
+                     FIND_BY_ID_QUERY)) {
             statement.setInt(1, number);
             ResultSet resultSet = statement.executeQuery();
             if (resultSet.next()) {
-                room = getRoomFromResultSet(resultSet);
+                return getRoomFromResultSet(resultSet);
             }
         } catch (SQLException e) {
             throw new DAOException("Error while finding room by number", e);
         }
-        return room;
+        return null;
     }
 
     @Override
@@ -40,7 +44,7 @@ public class RoomDAO extends AbstractDAO<Room> {
         List<Room> rooms = new ArrayList<>();
         try (Connection connection = connectionPool.getConnection();
              PreparedStatement statement = connection.prepareStatement(
-                     "SELECT * FROM Rooms")) {
+                     FIND_ALL_QUERY)) {
             ResultSet resultSet = statement.executeQuery();
             while (resultSet.next()) {
                 Room room = getRoomFromResultSet(resultSet);
@@ -60,13 +64,9 @@ public class RoomDAO extends AbstractDAO<Room> {
 
         try (Connection connection = connectionPool.getConnection();
              PreparedStatement statement = connection.prepareStatement(
-                     "INSERT INTO Rooms (number, type, capacity, Block_floor, Block_code) VALUES (?, ?, ?, ?, ?)",
+                     INSERT_QUERY,
                      Statement.RETURN_GENERATED_KEYS)) {
-            statement.setInt(1, room.getNumber());
-            statement.setString(2, room.getType());
-            statement.setInt(3, room.getCapacity());
-            statement.setInt(4, room.getBlock().getFloor());
-            statement.setInt(5, room.getBlock().getCode());
+            setRoomStatementParameters(statement, room);
             statement.executeUpdate();
 
             // Retrieve the generated ID
@@ -88,11 +88,8 @@ public class RoomDAO extends AbstractDAO<Room> {
 
         try (Connection connection = connectionPool.getConnection();
              PreparedStatement statement = connection.prepareStatement(
-                     "UPDATE Rooms SET type = ?, capacity = ?, Block_floor = ?, Block_code = ? WHERE number = ?")) {
-            statement.setString(1, room.getType());
-            statement.setInt(2, room.getCapacity());
-            statement.setInt(3, room.getBlock().getFloor());
-            statement.setInt(4, room.getBlock().getCode());
+                     UPDATE_QUERY)) {
+            setRoomStatementParameters(statement, room);
             statement.setInt(5, room.getNumber());
             statement.executeUpdate();
         } catch (SQLException e) {
@@ -107,12 +104,19 @@ public class RoomDAO extends AbstractDAO<Room> {
         }
 
         try (Connection connection = connectionPool.getConnection();
-             PreparedStatement statement = connection.prepareStatement("DELETE FROM Rooms WHERE number = ?")) {
+             PreparedStatement statement = connection.prepareStatement(DELETE_QUERY)) {
             statement.setInt(1, room.getNumber());
             statement.executeUpdate();
         } catch (SQLException e) {
             throw new DAOException("Error while deleting room", e);
         }
+    }
+
+    private void setRoomStatementParameters(PreparedStatement statement, Room room) throws SQLException {
+        statement.setString(1, room.getType());
+        statement.setInt(2, room.getCapacity());
+        statement.setInt(3, room.getBlock().getFloor());
+        statement.setInt(4, room.getBlock().getCode());
     }
 
     private Room getRoomFromResultSet(ResultSet resultSet) throws SQLException {

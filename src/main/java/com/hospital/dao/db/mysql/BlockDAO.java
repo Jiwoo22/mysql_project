@@ -19,8 +19,7 @@ public class BlockDAO extends AbstractDAO<Block> {
         this.connectionPool = connectionPool;
     }
 
-    public Block findByfloorAndCode(int floor, int code) {
-        Block block = null;
+    public Block findByFloorAndCode(int floor, int code) {
         try (Connection connection = connectionPool.getConnection();
              PreparedStatement statement = connection.prepareStatement(
                      "SELECT * FROM Block WHERE floor = ? AND code = ?")) {
@@ -28,12 +27,12 @@ public class BlockDAO extends AbstractDAO<Block> {
             statement.setInt(2, code);
             ResultSet resultSet = statement.executeQuery();
             if (resultSet.next()) {
-                block = getBlockFromResultSet(resultSet);
+                return getBlockFromResultSet(resultSet);
             }
         } catch (SQLException e) {
             throw new DAOException("Error while finding block by floor and code", e);
         }
-        return block;
+        return null;
     }
 
     @Override
@@ -66,8 +65,7 @@ public class BlockDAO extends AbstractDAO<Block> {
         try (Connection connection = connectionPool.getConnection();
              PreparedStatement statement = connection.prepareStatement(
                      "INSERT INTO Block (floor, code) VALUES (?, ?)")) {
-            statement.setInt(1, entity.getFloor());
-            statement.setInt(2, entity.getCode());
+            setBlockStatementParameters(statement, entity);
             statement.executeUpdate();
         } catch (SQLException e) {
             throw new DAOException("Error while saving block", e);
@@ -87,8 +85,7 @@ public class BlockDAO extends AbstractDAO<Block> {
         try (Connection connection = connectionPool.getConnection();
              PreparedStatement statement = connection.prepareStatement(
                      "UPDATE Block SET floor = ?, code = ? WHERE floor = ? AND code = ?")) {
-            statement.setInt(1, entity.getFloor());
-            statement.setInt(2, entity.getCode());
+            setBlockStatementParameters(statement, entity);
             statement.setInt(3, prevFloor);
             statement.setInt(4, prevCode);
             statement.executeUpdate();
@@ -106,14 +103,17 @@ public class BlockDAO extends AbstractDAO<Block> {
         try (Connection connection = connectionPool.getConnection();
              PreparedStatement statement = connection.prepareStatement(
                      "DELETE FROM Block WHERE floor = ? AND code = ?")) {
-            statement.setInt(1, entity.getFloor());
-            statement.setInt(2, entity.getCode());
+            setBlockStatementParameters(statement, entity);
             statement.executeUpdate();
         } catch (SQLException e) {
             throw new DAOException("Error while deleting block", e);
         }
     }
 
+    private void setBlockStatementParameters(PreparedStatement statement, Block entity) throws SQLException {
+        statement.setInt(1, entity.getFloor());
+        statement.setInt(2, entity.getCode());
+    }
     private Block getBlockFromResultSet(ResultSet resultSet) throws SQLException {
         Block block = new Block();
         block.setFloor(resultSet.getInt("floor"));

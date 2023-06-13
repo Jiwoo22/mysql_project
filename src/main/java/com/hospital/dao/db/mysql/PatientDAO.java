@@ -1,6 +1,6 @@
 package com.hospital.dao.db.mysql;
 
-import com.hospital.AbstractDAO;
+import com.hospital.GenericDAO;
 import com.hospital.dao.model.Patient;
 import com.hospital.exceptions.DAOException;
 import com.hospital.utils.ConnectionPool;
@@ -9,8 +9,13 @@ import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
-public class PatientDAO extends AbstractDAO<Patient> {
-    private ConnectionPool connectionPool; // JDBC connection object;
+public class PatientDAO implements GenericDAO<Patient> {
+    private ConnectionPool connectionPool;
+    private static final String SELECT_BY_ID_QUERY = "SELECT * FROM Patients WHERE patient_id = ?";
+    private static final String SELECT_ALL_QUERY = "SELECT * FROM Patients";
+    private static final String INSERT_QUERY = "INSERT INTO Patients (name, phone, DOB, doctor_id) VALUES (?, ?, ?, ?)";
+    private static final String UPDATE_QUERY = "UPDATE Patients SET name = ?, phone = ?, DOB = ?, doctor_id = ? WHERE patient_id = ?";
+    private static final String DELETE_QUERY = "DELETE FROM Patients WHERE patient_id = ?";
 
     public PatientDAO(ConnectionPool connectionPool) {
         this.connectionPool = connectionPool;
@@ -18,27 +23,24 @@ public class PatientDAO extends AbstractDAO<Patient> {
 
     @Override
     public Patient findById(int id) {
-        Patient patient = null;
         try (Connection connection = connectionPool.getConnection();
-            PreparedStatement statement = connection.prepareStatement(
-                    "SELECT * FROM Patients where patient_id = ?")) {
+             PreparedStatement statement = connection.prepareStatement(SELECT_BY_ID_QUERY)) {
             statement.setInt(1, id);
             ResultSet resultSet = statement.executeQuery();
             if (resultSet.next()) {
-                patient = getPatientFromResultSet(resultSet);
+                return getPatientFromResultSet(resultSet);
             }
         } catch (SQLException e) {
-            throw new DAOException("Error while finding patient by id",e);
+            throw new DAOException("Error while finding patient by ID", e);
         }
-        return patient;
+        return null;
     }
 
     @Override
     public List<Patient> findAll() {
         List<Patient> patients = new ArrayList<>();
         try (Connection connection = connectionPool.getConnection();
-             PreparedStatement statement = connection.prepareStatement(
-                     "SELECT * FROM Patients")) {
+             PreparedStatement statement = connection.prepareStatement(SELECT_ALL_QUERY)) {
             ResultSet resultSet = statement.executeQuery();
             while (resultSet.next()) {
                 Patient patient = getPatientFromResultSet(resultSet);
@@ -57,26 +59,18 @@ public class PatientDAO extends AbstractDAO<Patient> {
         }
 
         try (Connection connection = connectionPool.getConnection();
-             PreparedStatement statement = connection.prepareStatement(
-                     "INSERT INTO Patients (patient_id, name, phone, DOB, doctor_id, insurance_id) VALUES (?, ?, ?, ?, ?, ?)",
+             PreparedStatement statement = connection.prepareStatement(INSERT_QUERY,
                      Statement.RETURN_GENERATED_KEYS)) {
-            statement.setInt(1, entity.getId());
-            statement.setString(2, entity.getName());
-            statement.setString(3, entity.getPhone());
-            statement.setDate(4,java.sql.Date.valueOf(entity.getDateOfBirth()));
-            statement.setInt(5, entity.getDoctorId());
-            statement.setInt(6, entity.getInsuranceId());
+            setPatientStatementParameters(statement, entity);
             statement.executeUpdate();
 
-            // Retrieve the generated ID
             ResultSet generatedKeys = statement.getGeneratedKeys();
             if (generatedKeys.next()) {
                 int generatedId = generatedKeys.getInt(1);
                 entity.setId(generatedId);
             }
-
         } catch (SQLException e) {
-            throw new DAOException("Error while saving patient",e);
+            throw new DAOException("Error while saving patient", e);
         }
     }
 
@@ -87,14 +81,9 @@ public class PatientDAO extends AbstractDAO<Patient> {
         }
 
         try (Connection connection = connectionPool.getConnection();
-             PreparedStatement statement = connection.prepareStatement(
-                     "UPDATE Patients SET name = ?, phone = ?, DOB = ?, doctor_id = ?, insurance_id = ? WHERE patient_id = ?")) {
-            statement.setString(1, entity.getName());
-            statement.setString(2, entity.getPhone());
-            statement.setTimestamp(3, Timestamp.valueOf(entity.getDateOfBirth()));
-            statement.setInt(4, entity.getDoctorId());
-            statement.setInt(5, entity.getInsuranceId());
-            statement.setInt(6, entity.getId());
+             PreparedStatement statement = connection.prepareStatement(UPDATE_QUERY)) {
+            setPatientStatementParameters(statement, entity);
+            statement.setInt(5, entity.getId());
             statement.executeUpdate();
         } catch (SQLException e) {
             throw new DAOException("Error while updating patient", e);
@@ -102,19 +91,18 @@ public class PatientDAO extends AbstractDAO<Patient> {
     }
 
     @Override
-    public void delete(Patient patient) {
-        if (patient == null) {
+    public void delete(Patient entity) {
+        if (entity == null) {
             throw new IllegalArgumentException("Patient entity must not be null");
         }
 
         try (Connection connection = connectionPool.getConnection();
-            PreparedStatement statement = connection.prepareStatement("DELETE FROM Patients where id =?")) {
-            statement.setInt(1, patient.getId());
+             PreparedStatement statement = connection.prepareStatement(DELETE_QUERY)) {
+            statement.setInt(1, entity.getId());
             statement.executeUpdate();
         } catch (SQLException e) {
             throw new DAOException("Error while deleting patient", e);
         }
-
     }
 
     private Patient getPatientFromResultSet(ResultSet resultSet) throws SQLException {
@@ -122,9 +110,15 @@ public class PatientDAO extends AbstractDAO<Patient> {
         patient.setId(resultSet.getInt("patient_id"));
         patient.setName(resultSet.getString("name"));
         patient.setPhone(resultSet.getString("phone"));
-        patient.setDateOfBirth(String.valueOf(resultSet.getTimestamp("DOB")));
+        patient.setDateOfBirth(String.valueOf(resultSet.getDate("DOB")));
         patient.setDoctorId(resultSet.getInt("doctor_id"));
-        patient.setInsuranceId(resultSet.getInt("insurance_id"));
         return patient;
+    }
+
+    private void setPatientStatementParameters(PreparedStatement statement, Patient entity) throws SQLException {
+        statement.setString(1, entity.getName());
+        statement.setString(2, entity.getPhone());
+        statement.setDate(3, java.sql.Date.valueOf(entity.getDateOfBirth()));
+        statement.setInt(4, entity.getDoctorId());
     }
 }

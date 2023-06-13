@@ -10,7 +10,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class EmployeeDAO extends AbstractDAO<Employee> {
-    private ConnectionPool connectionPool; // JDBC connection object;
+    private ConnectionPool connectionPool;
+    private static final String SELECT_BY_ID_QUERY = "SELECT * FROM Employees WHERE employee_id = ?";
+    private static final String SELECT_ALL_QUERY = "SELECT * FROM Employees";
+    private static final String INSERT_QUERY = "INSERT INTO Employees (name, DOB, payroll_id) VALUES (?, ?, ?)";
 
     public EmployeeDAO(ConnectionPool connectionPool) {
         this.connectionPool = connectionPool;
@@ -18,27 +21,24 @@ public class EmployeeDAO extends AbstractDAO<Employee> {
 
     @Override
     public Employee findById(int id) {
-        Employee employee = null;
         try (Connection connection = connectionPool.getConnection();
-             PreparedStatement statement = connection.prepareStatement(
-                     "SELECT * FROM Employees where employee_id = ?")) {
+             PreparedStatement statement = connection.prepareStatement(SELECT_BY_ID_QUERY)) {
             statement.setInt(1, id);
             ResultSet resultSet = statement.executeQuery();
             if (resultSet.next()) {
-                employee = getEmployeeFromResultSet(resultSet);
+                return getEmployeeFromResultSet(resultSet);
             }
         } catch (SQLException e) {
             throw new DAOException("Error while finding employee by id", e);
         }
-        return employee;
+        return null;
     }
 
     @Override
     public List<Employee> findAll() {
         List<Employee> employees = new ArrayList<>();
         try (Connection connection = connectionPool.getConnection();
-             PreparedStatement statement = connection.prepareStatement(
-                     "SELECT * FROM Employees")) {
+             PreparedStatement statement = connection.prepareStatement(SELECT_ALL_QUERY)) {
             ResultSet resultSet = statement.executeQuery();
             while (resultSet.next()) {
                 Employee employee = getEmployeeFromResultSet(resultSet);
@@ -57,13 +57,9 @@ public class EmployeeDAO extends AbstractDAO<Employee> {
         }
 
         try (Connection connection = connectionPool.getConnection();
-             PreparedStatement statement = connection.prepareStatement(
-                     "INSERT INTO Employees (employee_id, name, DOB, payroll_id) VALUES (?, ?, ?, ?)",
+             PreparedStatement statement = connection.prepareStatement(INSERT_QUERY,
                      Statement.RETURN_GENERATED_KEYS)) {
-            statement.setInt(1, entity.getEmployeeId());
-            statement.setString(2, entity.getName());
-            statement.setString(3, entity.getDateOfBirth());
-            statement.setInt(4, entity.getPayrollId());
+            setEmployeeStatementParameters(statement, entity);
             statement.executeUpdate();
 
             // Retrieve the generated ID
@@ -87,9 +83,7 @@ public class EmployeeDAO extends AbstractDAO<Employee> {
         try (Connection connection = connectionPool.getConnection();
              PreparedStatement statement = connection.prepareStatement(
                      "UPDATE Employees SET name = ?, DOB = ?, payroll_id = ? WHERE employee_id = ?")) {
-            statement.setString(1, entity.getName());
-            statement.setString(2, entity.getDateOfBirth());
-            statement.setInt(3, entity.getPayrollId());
+            setEmployeeStatementParameters(statement, entity);
             statement.setInt(4, entity.getEmployeeId());
             statement.executeUpdate();
         } catch (SQLException e) {
@@ -112,7 +106,6 @@ public class EmployeeDAO extends AbstractDAO<Employee> {
         }
     }
 
-
     private Employee getEmployeeFromResultSet(ResultSet resultSet) throws SQLException {
         Employee employee = new Employee();
         employee.setEmployeeId(resultSet.getInt("employee_id"));
@@ -120,5 +113,11 @@ public class EmployeeDAO extends AbstractDAO<Employee> {
         employee.setDateOfBirth(resultSet.getString("DOB"));
         employee.setPayrollId(resultSet.getInt("payroll_id"));
         return employee;
+    }
+
+    private void setEmployeeStatementParameters(PreparedStatement statement, Employee entity) throws SQLException {
+        statement.setString(1, entity.getName());
+        statement.setString(2, entity.getDateOfBirth());
+        statement.setInt(3, entity.getPayrollId());
     }
 }

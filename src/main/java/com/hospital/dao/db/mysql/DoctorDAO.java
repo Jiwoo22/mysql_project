@@ -10,7 +10,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class DoctorDAO extends AbstractDAO<Doctor> {
-    private ConnectionPool connectionPool; // JDBC connection object;
+    private ConnectionPool connectionPool;
+    private static final String SELECT_BY_ID_QUERY = "SELECT * FROM Doctors WHERE doctor_id = ?";
+    private static final String SELECT_ALL_QUERY = "SELECT * FROM Doctors";
+    private static final String INSERT_QUERY = "INSERT INTO Doctors (name, specialization, email, employee_id) VALUES (?, ?, ?, ?)";
 
     public DoctorDAO(ConnectionPool connectionPool) {
         this.connectionPool = connectionPool;
@@ -18,27 +21,24 @@ public class DoctorDAO extends AbstractDAO<Doctor> {
 
     @Override
     public Doctor findById(int id) {
-        Doctor doctor = null;
         try (Connection connection = connectionPool.getConnection();
-             PreparedStatement statement = connection.prepareStatement(
-                     "SELECT * FROM Doctors where doctor_id = ?")) {
+             PreparedStatement statement = connection.prepareStatement(SELECT_BY_ID_QUERY)) {
             statement.setInt(1, id);
             ResultSet resultSet = statement.executeQuery();
             if (resultSet.next()) {
-                doctor = getDoctorFromResultSet(resultSet);
+                return getDoctorFromResultSet(resultSet);
             }
         } catch (SQLException e) {
             throw new DAOException("Error while finding doctor by id", e);
         }
-        return doctor;
+        return null;
     }
 
     @Override
     public List<Doctor> findAll() {
         List<Doctor> doctors = new ArrayList<>();
         try (Connection connection = connectionPool.getConnection();
-             PreparedStatement statement = connection.prepareStatement(
-                     "SELECT * FROM Doctors")) {
+             PreparedStatement statement = connection.prepareStatement(SELECT_ALL_QUERY)) {
             ResultSet resultSet = statement.executeQuery();
             while (resultSet.next()) {
                 Doctor doctor = getDoctorFromResultSet(resultSet);
@@ -57,14 +57,9 @@ public class DoctorDAO extends AbstractDAO<Doctor> {
         }
 
         try (Connection connection = connectionPool.getConnection();
-             PreparedStatement statement = connection.prepareStatement(
-                     "INSERT INTO Doctors (doctor_id, name, specialization, email, employee_id) VALUES (?, ?, ?, ?, ?)",
+             PreparedStatement statement = connection.prepareStatement(INSERT_QUERY,
                      Statement.RETURN_GENERATED_KEYS)) {
-            statement.setInt(1, entity.getDoctorId());
-            statement.setString(2, entity.getName());
-            statement.setString(3, entity.getSpecialization());
-            statement.setString(4, entity.getEmail());
-            statement.setInt(5, entity.getEmployeeId());
+            setDoctorStatementParameters(statement, entity);
             statement.executeUpdate();
 
             // Retrieve the generated ID
@@ -72,7 +67,8 @@ public class DoctorDAO extends AbstractDAO<Doctor> {
             if (generatedKeys.next()) {
                 int generatedId = generatedKeys.getInt(1);
                 entity.setDoctorId(generatedId);
-            };
+            }
+
         } catch (SQLException e) {
             throw new DAOException("Error while saving doctor", e);
         }
@@ -87,10 +83,7 @@ public class DoctorDAO extends AbstractDAO<Doctor> {
         try (Connection connection = connectionPool.getConnection();
              PreparedStatement statement = connection.prepareStatement(
                      "UPDATE Doctors SET name = ?, specialization = ?, email = ?, employee_id = ? WHERE doctor_id = ?")) {
-            statement.setString(1, entity.getName());
-            statement.setString(2, entity.getSpecialization());
-            statement.setString(3, entity.getEmail());
-            statement.setInt(4, entity.getEmployeeId());
+            setDoctorStatementParameters(statement, entity);
             statement.setInt(5, entity.getDoctorId());
             statement.executeUpdate();
         } catch (SQLException e) {
@@ -122,5 +115,11 @@ public class DoctorDAO extends AbstractDAO<Doctor> {
         doctor.setEmployeeId(resultSet.getInt("employee_id"));
         return doctor;
     }
-}
 
+    private void setDoctorStatementParameters(PreparedStatement statement, Doctor entity) throws SQLException {
+        statement.setString(1, entity.getName());
+        statement.setString(2, entity.getSpecialization());
+        statement.setString(3, entity.getEmail());
+        statement.setInt(4, entity.getEmployeeId());
+    }
+}

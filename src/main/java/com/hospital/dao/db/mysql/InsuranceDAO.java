@@ -11,6 +11,9 @@ import java.util.List;
 
 public class InsuranceDAO implements GenericDAO<Insurance> {
     private ConnectionPool connectionPool;
+    private static final String SELECT_BY_ID_QUERY = "SELECT * FROM Insurance WHERE Insurance_id = ?";
+    private static final String SELECT_ALL_QUERY = "SELECT * FROM Insurance";
+    private static final String INSERT_QUERY = "INSERT INTO Insurance (type, expiration_date) VALUES (?, ?)";
 
     public InsuranceDAO(ConnectionPool connectionPool) {
         this.connectionPool = connectionPool;
@@ -18,27 +21,24 @@ public class InsuranceDAO implements GenericDAO<Insurance> {
 
     @Override
     public Insurance findById(int id) {
-        Insurance insurance = null;
         try (Connection connection = connectionPool.getConnection();
-             PreparedStatement statement = connection.prepareStatement(
-                     "SELECT * FROM Insurance WHERE Insurance_id = ?")) {
+             PreparedStatement statement = connection.prepareStatement(SELECT_BY_ID_QUERY)) {
             statement.setInt(1, id);
             ResultSet resultSet = statement.executeQuery();
             if (resultSet.next()) {
-                insurance = getInsuranceFromResultSet(resultSet);
+                return getInsuranceFromResultSet(resultSet);
             }
         } catch (SQLException e) {
             throw new DAOException("Error while finding insurance by ID", e);
         }
-        return insurance;
+        return null;
     }
 
     @Override
     public List<Insurance> findAll() {
         List<Insurance> insurances = new ArrayList<>();
         try (Connection connection = connectionPool.getConnection();
-             PreparedStatement statement = connection.prepareStatement(
-                     "SELECT * FROM Insurance")) {
+             PreparedStatement statement = connection.prepareStatement(SELECT_ALL_QUERY)) {
             ResultSet resultSet = statement.executeQuery();
             while (resultSet.next()) {
                 Insurance insurance = getInsuranceFromResultSet(resultSet);
@@ -57,12 +57,9 @@ public class InsuranceDAO implements GenericDAO<Insurance> {
         }
 
         try (Connection connection = connectionPool.getConnection();
-             PreparedStatement statement = connection.prepareStatement(
-                     "INSERT INTO Insurance (insurance_id, type, expiration_date) VALUES (?, ?, ?)",
+             PreparedStatement statement = connection.prepareStatement(INSERT_QUERY,
                      Statement.RETURN_GENERATED_KEYS)) {
-            statement.setInt(1, entity.getInsuranceId());
-            statement.setString(2, entity.getType());
-            statement.setString(3, entity.getExpirationDate());
+            setInsuranceStatementParameters(statement, entity);
             statement.executeUpdate();
 
             // Retrieve the generated ID
@@ -86,8 +83,7 @@ public class InsuranceDAO implements GenericDAO<Insurance> {
         try (Connection connection = connectionPool.getConnection();
              PreparedStatement statement = connection.prepareStatement(
                      "UPDATE Insurance SET type = ?, expiration_date = ? WHERE Insurance_id = ?")) {
-            statement.setString(1, entity.getType());
-            statement.setString(2, entity.getExpirationDate());
+            setInsuranceStatementParameters(statement, entity);
             statement.setInt(3, entity.getInsuranceId());
             statement.executeUpdate();
         } catch (SQLException e) {
@@ -111,12 +107,16 @@ public class InsuranceDAO implements GenericDAO<Insurance> {
         }
     }
 
-
     private Insurance getInsuranceFromResultSet(ResultSet resultSet) throws SQLException {
         Insurance insurance = new Insurance();
         insurance.setInsuranceId(resultSet.getInt("Insurance_id"));
         insurance.setType(resultSet.getString("type"));
         insurance.setExpirationDate(resultSet.getString("expiration_date"));
         return insurance;
+    }
+
+    private void setInsuranceStatementParameters(PreparedStatement statement, Insurance entity) throws SQLException {
+        statement.setString(1, entity.getType());
+        statement.setString(2, entity.getExpirationDate());
     }
 }

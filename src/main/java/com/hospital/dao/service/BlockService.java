@@ -21,7 +21,7 @@ public class BlockService implements Service<Block> {
 
     public Block findById(int floor, int code) {
         // Implement the findById method specific to BlockService with floor and code parameters
-        return blockDao.findByfloorAndCode(floor, code);
+        return blockDao.findByFloorAndCode(floor, code);
     }
 
     @Override

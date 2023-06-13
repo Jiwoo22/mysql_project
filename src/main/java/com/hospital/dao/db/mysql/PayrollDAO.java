@@ -1,6 +1,6 @@
 package com.hospital.dao.db.mysql;
 
-import com.hospital.AbstractDAO;
+import com.hospital.GenericDAO;
 import com.hospital.dao.model.Payroll;
 import com.hospital.exceptions.DAOException;
 import com.hospital.utils.ConnectionPool;
@@ -9,8 +9,14 @@ import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
-public class PayrollDAO extends AbstractDAO<Payroll> {
+public class PayrollDAO implements GenericDAO<Payroll> {
     private ConnectionPool connectionPool;
+    private static final String SELECT_BY_ID_QUERY = "SELECT * FROM Payrolls WHERE payroll_id = ?";
+    private static final String SELECT_BY_ACCT_NUM_QUERY = "SELECT * FROM Payrolls WHERE account_number = ?";
+    private static final String SELECT_ALL_QUERY = "SELECT * FROM Payrolls";
+    private static final String INSERT_QUERY = "INSERT INTO Payrolls (net_salary, bonus_salary, account_number) VALUES (?, ?, ?)";
+    private static final String UPDATE_QUERY = "UPDATE Payrolls SET net_salary = ?, bonus_salary = ?, account_number = ? WHERE payroll_id = ?";
+    private static final String DELETE_QUERY = "DELETE FROM Payrolls WHERE payroll_id = ?";
 
     public PayrollDAO(ConnectionPool connectionPool) {
         this.connectionPool = connectionPool;
@@ -18,43 +24,38 @@ public class PayrollDAO extends AbstractDAO<Payroll> {
 
     @Override
     public Payroll findById(int id) {
-        Payroll payroll = null;
         try (Connection connection = connectionPool.getConnection();
-             PreparedStatement statement = connection.prepareStatement(
-                     "SELECT * FROM Payrolls where payroll_id = ?")) {
+             PreparedStatement statement = connection.prepareStatement(SELECT_BY_ID_QUERY)) {
             statement.setInt(1, id);
             ResultSet resultSet = statement.executeQuery();
             if (resultSet.next()) {
-                payroll = getPayrollFromResultSet(resultSet);
+                return getPayrollFromResultSet(resultSet);
             }
         } catch (SQLException e) {
-            throw new DAOException("Error while finding payroll by id", e);
+            throw new DAOException("Error while finding payroll by ID", e);
         }
-        return payroll;
+        return null;
     }
 
-    public Payroll findByAcctNum(int number) {
-        Payroll payroll = null;
+    public Payroll findByAccountNumber(int accountNumber) {
         try (Connection connection = connectionPool.getConnection();
-             PreparedStatement statement = connection.prepareStatement(
-                     "SELECT * FROM Payrolls where account_number = ?")) {
-            statement.setInt(1, number);
+             PreparedStatement statement = connection.prepareStatement(SELECT_BY_ACCT_NUM_QUERY)) {
+            statement.setInt(1, accountNumber);
             ResultSet resultSet = statement.executeQuery();
             if (resultSet.next()) {
-                payroll = getPayrollFromResultSet(resultSet);
+                return getPayrollFromResultSet(resultSet);
             }
         } catch (SQLException e) {
             throw new DAOException("Error while finding payroll by account number", e);
         }
-        return payroll;
+        return null;
     }
 
     @Override
     public List<Payroll> findAll() {
         List<Payroll> payrolls = new ArrayList<>();
         try (Connection connection = connectionPool.getConnection();
-             PreparedStatement statement = connection.prepareStatement(
-                     "SELECT * FROM Payrolls")) {
+             PreparedStatement statement = connection.prepareStatement(SELECT_ALL_QUERY)) {
             ResultSet resultSet = statement.executeQuery();
             while (resultSet.next()) {
                 Payroll payroll = getPayrollFromResultSet(resultSet);
@@ -73,22 +74,16 @@ public class PayrollDAO extends AbstractDAO<Payroll> {
         }
 
         try (Connection connection = connectionPool.getConnection();
-             PreparedStatement statement = connection.prepareStatement(
-                     "INSERT INTO Payrolls (payroll_id, net_salary, bonus_salary, account_number) VALUES (?, ?, ?, ?)",
+             PreparedStatement statement = connection.prepareStatement(INSERT_QUERY,
                      Statement.RETURN_GENERATED_KEYS)) {
-            statement.setInt(1, entity.getPayrollId());
-            statement.setFloat(2, entity.getNetSalary());
-            statement.setFloat(3, entity.getBonusSalary());
-            statement.setInt(4, entity.getAccountNumber());
+            setPayrollStatementParameters(statement, entity);
             statement.executeUpdate();
 
-            // Retrieve the generated ID
             ResultSet generatedKeys = statement.getGeneratedKeys();
             if (generatedKeys.next()) {
                 int generatedId = generatedKeys.getInt(1);
                 entity.setPayrollId(generatedId);
             }
-
         } catch (SQLException e) {
             throw new DAOException("Error while saving payroll", e);
         }
@@ -101,33 +96,28 @@ public class PayrollDAO extends AbstractDAO<Payroll> {
         }
 
         try (Connection connection = connectionPool.getConnection();
-             PreparedStatement statement = connection.prepareStatement(
-                     "UPDATE Payrolls SET net_salary = ?, bonus_salary = ?, account_number = ? WHERE payroll_id = ?")) {
-            statement.setFloat(1, entity.getNetSalary());
-            statement.setFloat(2, entity.getBonusSalary());
-            statement.setInt(3, entity.getAccountNumber());
+             PreparedStatement statement = connection.prepareStatement(UPDATE_QUERY)) {
+            setPayrollStatementParameters(statement, entity);
             statement.setInt(4, entity.getPayrollId());
             statement.executeUpdate();
-
         } catch (SQLException e) {
             throw new DAOException("Error while updating payroll", e);
         }
     }
 
     @Override
-    public void delete(Payroll payroll) {
-        if (payroll == null) {
+    public void delete(Payroll entity) {
+        if (entity == null) {
             throw new IllegalArgumentException("Payroll entity must not be null");
         }
 
         try (Connection connection = connectionPool.getConnection();
-             PreparedStatement statement = connection.prepareStatement("DELETE FROM Payrolls where payroll_id = ?")) {
-            statement.setInt(1, payroll.getPayrollId());
+             PreparedStatement statement = connection.prepareStatement(DELETE_QUERY)) {
+            statement.setInt(1, entity.getPayrollId());
             statement.executeUpdate();
         } catch (SQLException e) {
             throw new DAOException("Error while deleting payroll", e);
         }
-
     }
 
     private Payroll getPayrollFromResultSet(ResultSet resultSet) throws SQLException {
@@ -137,5 +127,11 @@ public class PayrollDAO extends AbstractDAO<Payroll> {
         payroll.setBonusSalary(resultSet.getFloat("bonus_salary"));
         payroll.setAccountNumber(resultSet.getInt("account_number"));
         return payroll;
+    }
+
+    private void setPayrollStatementParameters(PreparedStatement statement, Payroll entity) throws SQLException {
+        statement.setFloat(1, entity.getNetSalary());
+        statement.setFloat(2, entity.getBonusSalary());
+        statement.setInt(3, entity.getAccountNumber());
     }
 }
