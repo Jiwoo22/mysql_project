@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<hospital>
+    <employees>
+        <employee>
+            <employee_id>1</employee_id>
+            <name>John Smith</name>
+            <dob>1980-05-15</dob>
+            <payroll_id>101</payroll_id>
+        </employee>
+        <employee>
+            <employee_id>2</employee_id>
+            <name>Jane Doe</name>
+            <dob>1990-08-20</dob>
+            <payroll_id>102</payroll_id>
+        </employee>
+        <employee>
+            <employee_id>3</employee_id>
+            <name>Sarah Doe</name>
+            <dob>1990-08-20</dob>
+            <payroll_id>103</payroll_id>
+        </employee>
+    </employees>
+    <doctors>
+        <doctor>
+            <doctor_id>1</doctor_id>
+            <name>John Smith</name>
+            <specialization>Cardiology</specialization>
+            <email>michael@example.com</email>
+            <employee_id>1</employee_id>
+        </doctor>
+        <doctor>
+            <doctor_id>2</doctor_id>
+            <name>Jane Doe</name>
+            <specialization>Internal Medicine</specialization>
+            <email>emily@example.com</email>
+            <employee_id>2</employee_id>
+        </doctor>
+    </doctors>
+    <nurses>
+        <nurse>
+            <nurse_id>1</nurse_id>
+            <name>Sarah Doe</name>
+            <email>sarah@example.com</email>
+            <employee_id>1</employee_id>
+        </nurse>
+    </nurses>
+    <patients>
+        <patient>
+            <patient_id>1</patient_id>
+            <name>Mark Johnson</name>
+            <phone>123-456-7890</phone>
+            <dob>1975-12-10</dob>
+            <doctor_id>1</doctor_id>
+            <insurance_id>1001</insurance_id>
+        </patient>
+    </patients>
+    <payrolls>
+        <payroll>
+            <payroll_id>101</payroll_id>
+            <net_salary>500000.00</net_salary>
+            <bonus_salary>100000.00</bonus_salary>
+            <account_number>123456789</account_number>
+        </payroll>
+        <payroll>
+            <payroll_id>102</payroll_id>
+            <net_salary>450000.00</net_salary>
+            <bonus_salary>80000.00</bonus_salary>
+            <account_number>987654321</account_number>
+        </payroll>
+        <payroll>
+            <payroll_id>103</payroll_id>
+            <net_salary>450000.00</net_salary>
+            <bonus_salary>80000.00</bonus_salary>
+            <account_number>145677888</account_number>
+        </payroll>
+    </payrolls>
+</hospital>

@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+    <xs:element name="hospital">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="employees">
+                    <xs:complexType>
+                        <xs:sequence>
+                            <xs:element name="employee" maxOccurs="unbounded">
+                                <xs:complexType>
+                                    <xs:sequence>
+                                        <xs:element name="employee_id" type="xs:int"/>
+                                        <xs:element name="name" type="xs:string"/>
+                                        <xs:element name="dob" type="xs:date"/>
+                                        <xs:element name="payroll_id" type="xs:int"/>
+                                    </xs:sequence>
+                                </xs:complexType>
+                            </xs:element>
+                        </xs:sequence>
+                    </xs:complexType>
+                </xs:element>
+                <xs:element name="doctors">
+                    <xs:complexType>
+                        <xs:sequence>
+                            <xs:element name="doctor" maxOccurs="unbounded">
+                                <xs:complexType>
+                                    <xs:sequence>
+                                        <xs:element name="doctor_id" type="xs:int"/>
+                                        <xs:element name="name" type="xs:string"/>
+                                        <xs:element name="specialization" type="xs:string"/>
+                                        <xs:element name="email" type="xs:string"/>
+                                        <xs:element name="employee_id" type="xs:int"/>
+                                    </xs:sequence>
+                                </xs:complexType>
+                            </xs:element>
+                        </xs:sequence>
+                    </xs:complexType>
+                </xs:element>
+                <xs:element name="nurses">
+                    <xs:complexType>
+                        <xs:sequence>
+                            <xs:element name="nurse" maxOccurs="unbounded">
+                                <xs:complexType>
+                                    <xs:sequence>
+                                        <xs:element name="nurse_id" type="xs:int"/>
+                                        <xs:element name="name" type="xs:string"/>
+                                        <xs:element name="email" type="xs:string"/>
+                                        <xs:element name="employee_id" type="xs:int"/>
+                                    </xs:sequence>
+                                </xs:complexType>
+                            </xs:element>
+                        </xs:sequence>
+                    </xs:complexType>
+                </xs:element>
+                <xs:element name="patients">
+                    <xs:complexType>
+                        <xs:sequence>
+                            <xs:element name="patient" maxOccurs="unbounded">
+                                <xs:complexType>
+                                    <xs:sequence>
+                                        <xs:element name="patient_id" type="xs:int"/>
+                                        <xs:element name="name" type="xs:string"/>
+                                        <xs:element name="phone" type="xs:string"/>
+                                        <xs:element name="dob" type="xs:date"/>
+                                        <xs:element name="doctor_id" type="xs:int"/>
+                                        <xs:element name="insurance_id" type="xs:int"/>
+                                    </xs:sequence>
+                                </xs:complexType>
+                            </xs:element>
+                        </xs:sequence>
+                    </xs:complexType>
+                </xs:element>
+                <xs:element name="payrolls">
+                    <xs:complexType>
+                        <xs:sequence>
+                            <xs:element name="payroll" maxOccurs="unbounded">
+                                <xs:complexType>
+                                    <xs:sequence>
+                                        <xs:element name="payroll_id" type="xs:int"/>
+                                        <xs:element name="net_salary" type="xs:float"/>
+                                        <xs:element name="bonus_salary" type="xs:float"/>
+                                        <xs:element name="account_number" type="xs:long"/>
+                                    </xs:sequence>
+                                </xs:complexType>
+                            </xs:element>
+                        </xs:sequence>
+                    </xs:complexType>
+                </xs:element>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+</xs:schema>
