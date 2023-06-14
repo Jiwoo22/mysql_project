@@ -1,16 +1,14 @@
 package com.hospital;
 
-import com.hospital.dao.db.mysql.*;
-import com.hospital.dao.model.*;
-import com.hospital.dao.service.*;
+import com.hospital.hospital.db.mysql.*;
+import com.hospital.hospital.model.*;
+import com.hospital.hospital.service.*;
 import com.hospital.utils.ConnectionPool;
 
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
-import java.sql.Timestamp;
-import java.util.List;
 import java.util.Properties;
 
 public class Main {
