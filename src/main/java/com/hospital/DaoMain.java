@@ -11,7 +11,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Properties;
 
-public class Main {
+public class DaoMain {
 
     public static void main(String[] args) throws Exception {
 

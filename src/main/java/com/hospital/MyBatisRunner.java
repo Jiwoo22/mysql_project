@@ -1,4 +1,4 @@
-package com.hospital.hospital.db;
+package com.hospital;
 
 import com.hospital.hospital.db.mapper.*;
 import com.hospital.hospital.model.*;
